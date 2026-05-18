@@ -1,0 +1,108 @@
+{
+  "info": {
+    "name": "Stores",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:3000/api" }
+  ],
+  "item": [
+    {
+      "name": "Create Store",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/stores",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Main Warehouse\",\n  \"address\": \"Plot 12, Industrial Area, Hyderabad\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Get All Stores",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/stores"
+      }
+    },
+    {
+      "name": "Get Store",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/stores/:id",
+        "variable": [{ "key": "id", "value": "STORE_ID_HERE" }]
+      }
+    },
+    {
+      "name": "Update Store",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/stores/:id",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "variable": [{ "key": "id", "value": "STORE_ID_HERE" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"address\": \"Plot 15, Industrial Area, Hyderabad\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Delete Store",
+      "request": {
+        "method": "DELETE",
+        "url": "{{base_url}}/stores/:id",
+        "variable": [{ "key": "id", "value": "STORE_ID_HERE" }]
+      }
+    },
+    {
+      "name": "Create Transaction",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/stores/transactions/create",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"storeId\": \"STORE_ID_HERE\",\n  \"type\": \"DEBIT\",\n  \"title\": \"Material Purchase\",\n  \"description\": \"Cement and steel purchase\",\n  \"amount\": 75000\n}"
+        }
+      }
+    },
+    {
+      "name": "Get Store Transactions",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/stores/:storeId/transactions",
+        "variable": [{ "key": "storeId", "value": "STORE_ID_HERE" }]
+      }
+    },
+    {
+      "name": "Get Transaction",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/stores/transactions/:id",
+        "variable": [{ "key": "id", "value": "TRANSACTION_ID_HERE" }]
+      }
+    },
+    {
+      "name": "Update Transaction",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/stores/transactions/:id",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "variable": [{ "key": "id", "value": "TRANSACTION_ID_HERE" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 80000,\n  \"description\": \"Updated material purchase\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Delete Transaction",
+      "request": {
+        "method": "DELETE",
+        "url": "{{base_url}}/stores/transactions/:id",
+        "variable": [{ "key": "id", "value": "TRANSACTION_ID_HERE" }]
+      }
+    }
+  ]
+}
