@@ -26,6 +26,9 @@ app.use(cors({
     "http://localhost:5173",
     "http://localhost:3000",
     "http://localhost:3001",
+    "https://hitzonenets.com",
+    "https://admin.hitzonenets.com",
+    "https://test.hitzonenets.com",
 
   ],
   credentials: true,
