@@ -40,11 +40,11 @@ export const loginUser = asyncHandler(async (req, res, next) => {
   res.cookie("token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
-  res.json({ message: "Login successful" });
+  res.json({ message: "Login successful", role: user.role, name: user.name });
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {
@@ -56,4 +56,47 @@ export const getMe = asyncHandler(async (req, res, next) => {
   const user = await UserModal.findById(req.user.id).select("-password");
   if (!user) return next(new AppError("User not found", 404));
   res.json(user);
+});
+
+export const getAllUsers = asyncHandler(async (req, res, next) => {
+  const users = await UserModal.find().sort({ createdAt: -1 });
+  res.json(users);
+});
+
+export const updateUser = asyncHandler(async (req, res, next) => {
+  const { name, email, password, phone, role } = req.body;
+
+  if (email) {
+    const existing = await UserModal.findOne({ email, _id: { $ne: req.params.id } });
+    if (existing) return next(new AppError("Email already exists", 400));
+  }
+
+  const updateData = { name, email, phone, role };
+
+  if (password && password !== '••••••••' && password.trim() !== '') {
+    updateData.password = await bcrypt.hash(password, 10);
+  }
+
+  const user = await UserModal.findByIdAndUpdate(
+    req.params.id,
+    updateData,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  if (!user) return next(new AppError("User not found", 404));
+  res.json({ message: "User updated", user });
+});
+
+export const deleteUser = asyncHandler(async (req, res, next) => {
+  // Optional safety: don't allow an admin to delete themselves
+  if (req.user.id === req.params.id) {
+    return next(new AppError("You cannot delete your own account", 400));
+  }
+
+  const user = await UserModal.findByIdAndDelete(req.params.id);
+  if (!user) return next(new AppError("User not found", 404));
+  res.json({ message: "User deleted" });
 });

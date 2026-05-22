@@ -8,7 +8,9 @@ const Schema = new mongoose.Schema(
       required: true,
     },
     type: {
+      type: String,
       enum: ["CREDIT", "DEBIT"],
+      required: true,
     },
 
     title: {

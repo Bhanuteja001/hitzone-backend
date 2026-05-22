@@ -17,11 +17,13 @@ import { authenticate, authorize } from "../middlewares/AuthMiddleware.js";
 
 const router = express.Router();
 
-router.use(authenticate);
-
-// Store routes
+// Public routes
 router.get("/", getAllStores);
 router.get("/:id", getStore);
+
+router.use(authenticate);
+
+// Store write routes
 router.post("/", authorize("admin"), createStore);
 router.patch("/:id", authorize("admin"), updateStore);
 router.delete("/:id", authorize("admin"), deleteStore);

@@ -12,10 +12,12 @@ const Schema = new mongoose.Schema(
       type: String,
     },
     phone: {
-      type: Number,
+      type: String,
     },
     role: {
+      type: String,
       enum: ["user", "admin"],
+      default: "user",
     },
   },
   {

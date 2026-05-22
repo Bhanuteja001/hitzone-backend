@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import morgan from "morgan";
-import rateLimit from "express-rate-limit";
+// import rateLimit from "express-rate-limit";
 import connectDB from "./lib/db.js";
 import { globalErrorHandler } from "./middlewares/error.js";
 import { AppError } from "./utils/AppError.js";
@@ -10,24 +10,33 @@ import cookieParser from "cookie-parser";
 import AuthRoute from "./routes/AuthRoute.js";
 import projectRouter from "./routes/ProjectRoute.js";
 import storeRouter from "./routes/StoreRoute.js";
+import contactRouter from "./routes/ContactRoute.js";
 
 dotenv.config();
 
 connectDB();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://localhost:3001",
+
+  ],
+  credentials: true,
+}));
 app.use(morgan("dev"));
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-});
-app.use(limiter);
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000,
+//   max: 100,
+// });
+// app.use(limiter);
 app.use(cookieParser());
 
 // Your routes will go here
@@ -40,8 +49,10 @@ app.get("/", (req, res) => {
 app.use("/auth", AuthRoute);
 app.use("/projects", projectRouter);
 app.use("/stores", storeRouter);
+app.use("/contacts", contactRouter);
 
-app.all("*", (req, res, next) => {
+
+app.all("*", (req) => {
   throw new AppError(`Can't find ${req.originalUrl} on this server!`, 404);
 });
 

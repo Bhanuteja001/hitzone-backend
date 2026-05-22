@@ -13,8 +13,10 @@ export const authenticate = asyncHandler(async (req, res, next) => {
 
 export const authorize =
   (...roles) =>
-  (req, res, next) => {
-    if (!roles.includes(req.user.role))
-      return next(new AppError("Forbidden", 403));
-    next();
-  };
+    (req, res, next) => {
+      const userRole = req.user?.role?.toLowerCase();
+      const allowedRoles = roles.map(r => r.toLowerCase());
+      if (!userRole || !allowedRoles.includes(userRole))
+        return next(new AppError("Forbidden", 403));
+      next();
+    };
