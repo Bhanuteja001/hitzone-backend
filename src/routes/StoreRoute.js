@@ -29,7 +29,7 @@ router.patch("/:id", authorize("admin"), updateStore);
 router.delete("/:id", authorize("admin"), deleteStore);
 
 // Transaction routes
-router.post("/transactions/create", authorize("admin"), createTransaction);
+router.post("/transactions/create", authorize("admin", "user"), createTransaction);
 router.get("/:storeId/transactions", getStoreTransactions);
 router.get("/transactions/:id", getTransaction);
 router.patch("/transactions/:id", authorize("admin"), updateTransaction);
