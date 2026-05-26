@@ -29,6 +29,7 @@ app.use(cors({
     "https://hitzonenets.com",
     "https://admin.hitzonenets.com",
     "https://test.hitzonenets.com",
+    "https://hit-dashboard-kohl.vercel.app",
 
   ],
   credentials: true,
