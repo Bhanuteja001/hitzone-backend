@@ -45,7 +45,12 @@ export const loginUser = asyncHandler(async (req, res, next) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
-  res.json({ message: "Login successful", role: user.role, name: user.name });
+  res.json({
+    message: "Login successful",
+    role: user.role,
+    name: user.name,
+    token: token,
+  });
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {
@@ -73,24 +78,23 @@ export const updateUser = asyncHandler(async (req, res, next) => {
   const { name, email, password, phone, role } = req.body;
 
   if (email) {
-    const existing = await UserModal.findOne({ email, _id: { $ne: req.params.id } });
+    const existing = await UserModal.findOne({
+      email,
+      _id: { $ne: req.params.id },
+    });
     if (existing) return next(new AppError("Email already exists", 400));
   }
 
   const updateData = { name, email, phone, role };
 
-  if (password && password !== '••••••••' && password.trim() !== '') {
+  if (password && password !== "••••••••" && password.trim() !== "") {
     updateData.password = await bcrypt.hash(password, 10);
   }
 
-  const user = await UserModal.findByIdAndUpdate(
-    req.params.id,
-    updateData,
-    {
-      new: true,
-      runValidators: true,
-    }
-  );
+  const user = await UserModal.findByIdAndUpdate(req.params.id, updateData, {
+    new: true,
+    runValidators: true,
+  });
 
   if (!user) return next(new AppError("User not found", 404));
   res.json({ message: "User updated", user });
