@@ -12,6 +12,7 @@ import {
   getTransaction,
   updateTransaction,
   deleteTransaction,
+  getAllStoreTransactions,
 } from "../controllers/StoreTransactionController.js";
 import { authenticate, authorize } from "../middlewares/AuthMiddleware.js";
 
@@ -30,6 +31,7 @@ router.delete("/:id", authorize("admin"), deleteStore);
 
 // Transaction routes
 router.post("/transactions/create", authorize("admin", "user"), createTransaction);
+router.get("/transactions/all", authorize("admin"), getAllStoreTransactions);
 router.get("/:storeId/transactions", getStoreTransactions);
 router.get("/transactions/:id", getTransaction);
 router.patch("/transactions/:id", authorize("admin"), updateTransaction);

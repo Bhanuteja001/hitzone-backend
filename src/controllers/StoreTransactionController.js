@@ -49,3 +49,9 @@ export const deleteTransaction = asyncHandler(async (req, res, next) => {
   if (!transaction) return next(new AppError("Transaction not found", 404));
   res.json({ message: "Transaction deleted" });
 });
+
+export const getAllStoreTransactions = asyncHandler(async (req, res) => {
+  const transactions = await StoreTransactionModal.find({}).sort({ createdAt: -1 });
+  res.json(transactions);
+});
+

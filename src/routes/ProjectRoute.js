@@ -12,6 +12,7 @@ import {
   getTransaction,
   updateTransaction,
   deleteTransaction,
+  getAllProjectTransactions,
 } from "../controllers/ProjectTransactionController.js";
 import { authenticate, authorize } from "../middlewares/AuthMiddleware.js";
 
@@ -28,6 +29,7 @@ router.delete("/:id", authorize("admin"), deleteProject);
 
 // Transaction routes
 router.post("/transactions/create", authorize("admin"), createTransaction);
+router.get("/transactions/all", authorize("admin"), getAllProjectTransactions);
 router.get("/:projectId/transactions", getProjectTransactions);
 router.get("/transactions/:id", getTransaction);
 router.patch("/transactions/:id", authorize("admin"), updateTransaction);
