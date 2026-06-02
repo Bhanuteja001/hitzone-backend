@@ -50,6 +50,7 @@ export const loginUser = asyncHandler(async (req, res, next) => {
     message: "Login successful",
     role: user.role,
     name: user.name,
+    ...(process.env.NODE_ENV !== "production" ? { token } : {}),
   });
 });
 
