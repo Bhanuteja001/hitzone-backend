@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 /// PROJECT VALIDATIONS ///
-import { z } from "zod";
 
 export const ProjectSchema = z
   .object({
@@ -15,10 +14,10 @@ export const ProjectSchema = z
     area: z.string().min(1),
     budget: z.string().min(1),
     startDate: z.coerce.date(),
-    endDate: z.coerce.date(),
+    endDate: z.preprocess((val) => (val === "" || val === null || val === undefined ? undefined : val), z.coerce.date().optional()),
     projectDescription: z.string().optional(),
   })
-  .refine((data) => data.endDate > data.startDate, {
+  .refine((data) => !data.endDate || data.endDate > data.startDate, {
     message: "endDate must be after startDate",
     path: ["endDate"],
   });

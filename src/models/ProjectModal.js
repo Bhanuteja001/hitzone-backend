@@ -43,7 +43,7 @@ const Schema = new mongoose.Schema(
 
     endDate: {
       type: Date,
-      required: true,
+      required: false,
     },
 
     projectDescription: {
