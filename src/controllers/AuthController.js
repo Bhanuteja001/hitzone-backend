@@ -42,19 +42,26 @@ export const loginUser = asyncHandler(async (req, res, next) => {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    // Keep cookie in sync with JWT expiry (1 hour)
+    maxAge: 1 * 60 * 60 * 1000,
   });
 
   res.json({
     message: "Login successful",
     role: user.role,
     name: user.name,
-    token: token,
   });
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {
   const isProduction = process.env.NODE_ENV === "production";
+  // Explicitly clear the cookie (match options used when setting it)
+  res.cookie("token", "", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    maxAge: 0,
+  });
   res.clearCookie("token", {
     httpOnly: true,
     secure: isProduction,
