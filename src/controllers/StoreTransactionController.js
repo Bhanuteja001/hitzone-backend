@@ -1,11 +1,15 @@
 import StoreTransactionModal from "../models/StoreTransaction.js";
 import StoreModal from "../models/StoreModal.js";
+import UserModal from "../models/UserModal.js";
 import { AppError } from "../utils/AppError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const createTransaction = asyncHandler(async (req, res, next) => {
   const store = await StoreModal.findById(req.body.storeId);
   if (!store) return next(new AppError("Store not found", 404));
+
+  const user = await UserModal.findById(req.user.id);
+  req.body.addedBy = user ? user.name : "Admin";
 
   const transaction = await StoreTransactionModal.create(req.body);
   res.status(201).json({ message: "Transaction created", transaction });

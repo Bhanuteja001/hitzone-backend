@@ -25,6 +25,10 @@ const Schema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    addedBy: {
+      type: String,
+      required: false,
+    },
   },
   {
     timestamps: true,
