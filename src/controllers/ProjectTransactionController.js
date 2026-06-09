@@ -34,7 +34,21 @@ export const getTransaction = asyncHandler(async (req, res, next) => {
 });
 
 export const updateTransaction = asyncHandler(async (req, res, next) => {
-  const transaction = await ProjectTransactionModal.findByIdAndUpdate(
+  const transaction = await ProjectTransactionModal.findById(req.params.id);
+  if (!transaction) return next(new AppError("Transaction not found", 404));
+
+  const user = await UserModal.findById(req.user.id);
+  const currentUserName = user ? user.name : "Admin";
+  const txnAddedBy = transaction.addedBy || "Default Admin";
+
+  if (currentUserName.trim().toLowerCase() !== txnAddedBy.trim().toLowerCase()) {
+    return next(new AppError("You do not have permission to edit this transaction", 403));
+  }
+
+  // Prevent modifying the creator
+  delete req.body.addedBy;
+
+  const updatedTransaction = await ProjectTransactionModal.findByIdAndUpdate(
     req.params.id,
     req.body,
     {
@@ -42,15 +56,22 @@ export const updateTransaction = asyncHandler(async (req, res, next) => {
       runValidators: true,
     },
   );
-  if (!transaction) return next(new AppError("Transaction not found", 404));
-  res.json({ message: "Transaction updated", transaction });
+  res.json({ message: "Transaction updated", transaction: updatedTransaction });
 });
 
 export const deleteTransaction = asyncHandler(async (req, res, next) => {
-  const transaction = await ProjectTransactionModal.findByIdAndDelete(
-    req.params.id,
-  );
+  const transaction = await ProjectTransactionModal.findById(req.params.id);
   if (!transaction) return next(new AppError("Transaction not found", 404));
+
+  const user = await UserModal.findById(req.user.id);
+  const currentUserName = user ? user.name : "Admin";
+  const txnAddedBy = transaction.addedBy || "Default Admin";
+
+  if (currentUserName.trim().toLowerCase() !== txnAddedBy.trim().toLowerCase()) {
+    return next(new AppError("You do not have permission to delete this transaction", 403));
+  }
+
+  await ProjectTransactionModal.findByIdAndDelete(req.params.id);
   res.json({ message: "Transaction deleted" });
 });
 
