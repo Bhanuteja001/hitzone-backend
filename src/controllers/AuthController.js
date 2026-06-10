@@ -1,8 +1,11 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import UserModal from "../models/UserModal.js";
+import ProjectTransactionModal from "../models/ProjectTransaction.js";
+import StoreTransactionModal from "../models/StoreTransaction.js";
 import { AppError } from "../utils/AppError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+
 
 export const registerUser = asyncHandler(async (req, res, next) => {
   const { name, email, password, phone, role } = req.body;
@@ -85,6 +88,11 @@ export const getAllUsers = asyncHandler(async (req, res, next) => {
 export const updateUser = asyncHandler(async (req, res, next) => {
   const { name, email, password, phone, role } = req.body;
 
+  const existingUser = await UserModal.findById(req.params.id);
+  if (!existingUser) return next(new AppError("User not found", 404));
+
+  const oldName = existingUser.name || existingUser.get('username') || existingUser.email;
+
   if (email) {
     const existing = await UserModal.findOne({
       email,
@@ -104,7 +112,25 @@ export const updateUser = asyncHandler(async (req, res, next) => {
     runValidators: true,
   });
 
-  if (!user) return next(new AppError("User not found", 404));
+  // If the user's name is updated and it is different from their old name,
+  // update the addedBy field in all of their transactions.
+  if (name && oldName && name.trim().toLowerCase() !== oldName.trim().toLowerCase()) {
+    try {
+      await Promise.all([
+        ProjectTransactionModal.updateMany(
+          { addedBy: { $regex: new RegExp(`^${oldName.trim()}$`, "i") } },
+          { addedBy: name.trim() }
+        ),
+        StoreTransactionModal.updateMany(
+          { addedBy: { $regex: new RegExp(`^${oldName.trim()}$`, "i") } },
+          { addedBy: name.trim() }
+        )
+      ]);
+    } catch (err) {
+      console.error("Failed to update user transactions' addedBy field:", err);
+    }
+  }
+
   res.json({ message: "User updated", user });
 });
 
