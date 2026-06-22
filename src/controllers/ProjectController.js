@@ -1,6 +1,7 @@
 import ProjectModal from "../models/ProjectModal.js";
 import { AppError } from "../utils/AppError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { sendAgreementEmail } from "../utils/emailService.js";
 
 export const createProject = asyncHandler(async (req, res, next) => {
   const existing = await ProjectModal.findOne({
@@ -9,6 +10,12 @@ export const createProject = asyncHandler(async (req, res, next) => {
   if (existing) return next(new AppError("Project ref ID already exists", 400));
 
   const project = await ProjectModal.create(req.body);
+
+  // Send agreement email to client asynchronously (without blocking project creation response)
+  sendAgreementEmail(project).catch((err) => {
+    console.error("Failed to send project agreement email asynchronously:", err);
+  });
+
   res.status(201).json({ message: "Project created", project });
 });
 

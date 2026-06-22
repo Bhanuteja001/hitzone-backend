@@ -1,18 +1,21 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
 
-const mongoUri = 'mongodb://localhost:27017/hitzone-backend';
+dotenv.config();
+
+const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/hitzone-backend';
 
 async function seed() {
   await mongoose.connect(mongoUri);
   console.log('Connected to MongoDB');
 
-  const email = 'admin@hitzone.com';
+  const email = 'dineshmodem5132@gmail.com';
   
   // Check if admin already exists
   const existing = await mongoose.connection.db.collection('users').findOne({ email });
   if (existing) {
-    console.log('Admin user with email admin@hitzone.com already exists.');
+    console.log('Admin user with email dineshmodem5132@gmail.com already exists.');
     await mongoose.disconnect();
     return;
   }

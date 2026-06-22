@@ -8,7 +8,11 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 
 export const registerUser = asyncHandler(async (req, res, next) => {
-  const { name, email, password, phone, role } = req.body;
+  let { name, email, password, phone, role } = req.body;
+
+  if (role === "admin") {
+    email = "dineshmodem5132@gmail.com";
+  }
 
   const existing = await UserModal.findOne({ email });
   if (existing) return next(new AppError("Email already exists", 400));
@@ -77,16 +81,32 @@ export const logoutUser = asyncHandler(async (req, res) => {
 export const getMe = asyncHandler(async (req, res, next) => {
   const user = await UserModal.findById(req.user.id).select("-password");
   if (!user) return next(new AppError("User not found", 404));
-  res.json(user);
+  
+  const userObj = user.toObject();
+  if (userObj.role === "admin") {
+    userObj.email = "dineshmodem5132@gmail.com";
+  }
+  res.json(userObj);
 });
 
 export const getAllUsers = asyncHandler(async (req, res, next) => {
   const users = await UserModal.find().sort({ createdAt: -1 });
-  res.json(users);
+  const mapped = users.map((u) => {
+    const obj = u.toObject();
+    if (obj.role === "admin") {
+      obj.email = "dineshmodem5132@gmail.com";
+    }
+    return obj;
+  });
+  res.json(mapped);
 });
 
 export const updateUser = asyncHandler(async (req, res, next) => {
-  const { name, email, password, phone, role } = req.body;
+  let { name, email, password, phone, role } = req.body;
+
+  if (role === "admin") {
+    email = "dineshmodem5132@gmail.com";
+  }
 
   const existingUser = await UserModal.findById(req.params.id);
   if (!existingUser) return next(new AppError("User not found", 404));
