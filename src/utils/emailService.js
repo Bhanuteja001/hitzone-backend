@@ -51,17 +51,15 @@ export const generateAgreementPdf = (project) => {
       doc.moveDown(1.5);
 
       // ── FINANCIAL DETAILS ──────────────────────────────────────────────────
-      doc.fillColor(primaryColor).fontSize(14).text("2. Quotation & Agreement Amounts");
+      doc.fillColor(primaryColor).fontSize(14).text("2. Quotation & Budget Details");
       doc.strokeColor("#cccccc").lineWidth(1).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
       doc.moveDown(0.5);
 
       const qAmt = Number(project.quotationAmount) || 0;
-      const aAmt = Number(project.agreementAmount) || 0;
       const bAmt = Number(project.budget) || 0;
 
       doc.fontSize(10).fillColor(textColor);
       doc.text(`Quotation Amount: `, { continued: true }).font("Helvetica-Bold").text(`₹${qAmt.toLocaleString("en-IN")}`).font("Helvetica");
-      doc.text(`Agreement Amount: `, { continued: true }).font("Helvetica-Bold").text(`₹${aAmt.toLocaleString("en-IN")}`).font("Helvetica");
       doc.text(`Project Budget/Cost: `, { continued: true }).font("Helvetica-Bold").text(`₹${bAmt.toLocaleString("en-IN")}`).font("Helvetica");
 
       doc.moveDown(1.5);
@@ -122,21 +120,11 @@ export const sendAgreementEmail = async (project) => {
   }
 
   const emailUser = process.env.EMAIL_USER || "dineshmodem5132@gmail.com";
-  const emailPass = process.env.EMAIL_PASS;
+  const emailPass = process.env.EMAIL_PASS || "";
 
-  // If no password is provided in env, write a local copy of PDF and log it
+  // Log warning if EMAIL_PASS is missing but continue attempting to send to surface any SMTP configuration errors
   if (!emailPass) {
-    console.warn("EMAIL_PASS not configured in backend .env! Cannot send email via SMTP.");
-    
-    // Save copy locally to temp_agreements for verification
-    const backupDir = path.join(process.cwd(), "temp_agreements");
-    if (!fs.existsSync(backupDir)) {
-      fs.mkdirSync(backupDir, { recursive: true });
-    }
-    const backupPath = path.join(backupDir, `Agreement_${project.projectRefId}.pdf`);
-    fs.writeFileSync(backupPath, pdfBuffer);
-    console.log(`Saved agreement document PDF locally at: ${backupPath}`);
-    return;
+    console.warn("EMAIL_PASS not configured in backend .env! Attempting SMTP send using empty password.");
   }
 
   const transporter = nodemailer.createTransport({
@@ -146,6 +134,60 @@ export const sendAgreementEmail = async (project) => {
       pass: emailPass,
     },
   });
+
+  const formattedStartDate = project.startDate ? new Date(project.startDate).toLocaleDateString("en-IN") : "";
+  const qAmt = Number(project.quotationAmount) || 0;
+  const bAmt = Number(project.budget) || 0;
+
+  // Render a premium styled HTML body so details are viewable directly in the email
+  const htmlBody = `
+    <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 25px; border-radius: 8px; background-color: #fcfcfc;">
+      <h2 style="color: #020B1A; border-bottom: 2px solid #AED500; padding-bottom: 12px; margin-top: 0; font-size: 22px;">PROJECT AGREEMENT & QUOTATION</h2>
+      
+      <p>Dear <strong>${project.clientName}</strong>,</p>
+      <p>Thank you for choosing HIT Zone. Below are the details for your project and the terms of agreement. A PDF copy of this agreement is also attached for your records.</p>
+      
+      <h3 style="color: #020B1A; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 25px; font-size: 16px;">1. Project & Client Details</h3>
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+        <tr><td style="padding: 6px 0; color: #666; width: 180px;">Project ID:</td><td style="font-weight: bold; color: #020B1A;">${project.projectRefId}</td></tr>
+        <tr><td style="padding: 6px 0; color: #666;">Project Name:</td><td style="font-weight: bold; color: #020B1A;">${project.projectName}</td></tr>
+        <tr><td style="padding: 6px 0; color: #666;">Client Name:</td><td style="font-weight: bold; color: #020B1A;">${project.clientName}</td></tr>
+        <tr><td style="padding: 6px 0; color: #666;">Client Phone:</td><td style="color: #333;">${project.clientMobile || ""}</td></tr>
+        <tr><td style="padding: 6px 0; color: #666;">Client Email:</td><td style="color: #333;">${project.clientEmail || ""}</td></tr>
+        <tr><td style="padding: 6px 0; color: #666;">Location:</td><td style="color: #333;">${project.location}</td></tr>
+        <tr><td style="padding: 6px 0; color: #666;">Area (in sft):</td><td style="color: #333;">${project.area || ""}</td></tr>
+        <tr><td style="padding: 6px 0; color: #666;">Start Date:</td><td style="color: #333;">${formattedStartDate}</td></tr>
+      </table>
+
+      <h3 style="color: #020B1A; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 25px; font-size: 16px;">2. Financial Details</h3>
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+        <tr><td style="padding: 6px 0; color: #666; width: 180px;">Quotation Amount:</td><td style="font-weight: bold; color: #020B1A; font-size: 15px;">₹${qAmt.toLocaleString("en-IN")}</td></tr>
+        <tr><td style="padding: 6px 0; color: #666;">Project Budget/Cost:</td><td style="font-weight: bold; color: #020B1A; font-size: 15px;">₹${bAmt.toLocaleString("en-IN")}</td></tr>
+      </table>
+
+      <h3 style="color: #020B1A; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 25px; font-size: 16px;">3. Terms & Conditions</h3>
+      <ol style="padding-left: 20px; line-height: 1.6; font-size: 13px; color: #444;">
+        <li style="margin-bottom: 6px;"><strong>50% Advance:</strong> Payable upon order confirmation.</li>
+        <li style="margin-bottom: 6px;"><strong>30% Payment:</strong> Payable upon arrival of materials at site.</li>
+        <li style="margin-bottom: 6px;"><strong>20% Balance:</strong> Payable upon completion of work.</li>
+        <li style="margin-bottom: 6px;"><strong>GST:</strong> 5% GST is included in the above quotation.</li>
+        <li style="margin-bottom: 6px;"><strong>2-year service warranty is provided.</strong> Any issues not resulting from physical damage, misuse, or Unauthorized alterations will be covered under the warranty terms.</li>
+        <li style="margin-bottom: 6px;"><strong>Accommodation & Food:</strong> Food and accommodation for installers shall be provided by the management at site.</li>
+        <li style="margin-bottom: 6px;"><strong>Work Schedule:</strong> Work will commence after receipt of advance payment and site readiness confirmation.</li>
+        <li style="margin-bottom: 6px;"><strong>Completion Time:</strong> The completion timeline is subject to site conditions, weather, and uninterrupted workflow.</li>
+        <li style="margin-bottom: 6px;"><strong>Electricity & Water:</strong> Required electricity and water for installation shall be provided by the client at site free of cost.</li>
+        <li style="margin-bottom: 6px;"><strong>Material Handling:</strong> Safe storage space for materials must be provided by the client at site.</li>
+        <li style="margin-bottom: 6px;"><strong>Variation Clause:</strong> Any additional work or change in specifications will be charged extra upon mutual approval.</li>
+        <li style="margin-bottom: 6px;"><strong>Damage & Loss:</strong> The Company is not responsible for damages caused due to natural calamities, misuse, or third-party interference after handover.</li>
+      </ol>
+
+      <div style="margin-top: 35px; border-top: 1px solid #eee; padding-top: 15px; font-size: 12px; color: #666; text-align: center; line-height: 1.4;">
+        Best regards,<br>
+        <strong>HIT Zone Management</strong><br>
+        Email: <a href="mailto:dineshmodem5132@gmail.com" style="color: #007bff; text-decoration: none;">dineshmodem5132@gmail.com</a>
+      </div>
+    </div>
+  `;
 
   const mailOptions = {
     from: `"HIT Zone" <${emailUser}>`,
@@ -157,11 +199,15 @@ Thank you for choosing HIT Zone.
 
 Please find attached the official Agreement & Quotation document for your project "${project.projectName}" (Ref ID: ${project.projectRefId}). 
 
-The document details the project parameters, agreed quotation amounts, and our terms & conditions.
+Quotation Amount: ₹${qAmt.toLocaleString("en-IN")}
+Project Cost: ₹${bAmt.toLocaleString("en-IN")}
+
+Please check the attachment for terms & conditions.
 
 Best regards,
 HIT Zone Management
 Admin: dineshmodem5132@gmail.com`,
+    html: htmlBody,
     attachments: [
       {
         filename: `Agreement_${project.projectRefId}.pdf`,
@@ -175,16 +221,16 @@ Admin: dineshmodem5132@gmail.com`,
     console.log(`Agreement email sent successfully to ${project.clientEmail}. Message ID: ${info.messageId}`);
     return info;
   } catch (error) {
-    console.error("Error sending agreement email:", error);
+    console.error("SMTP sending failed. Error Details:", error);
     
-    // Fallback: save PDF copy locally
+    // Save PDF backup copy locally
     const backupDir = path.join(process.cwd(), "temp_agreements");
     if (!fs.existsSync(backupDir)) {
       fs.mkdirSync(backupDir, { recursive: true });
     }
     const backupPath = path.join(backupDir, `Agreement_${project.projectRefId}.pdf`);
     fs.writeFileSync(backupPath, pdfBuffer);
-    console.log(`Saved agreement document PDF locally at: ${backupPath}`);
+    console.warn(`Saved PDF locally at: ${backupPath}`);
     
     throw error;
   }

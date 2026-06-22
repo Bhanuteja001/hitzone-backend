@@ -24,10 +24,6 @@ const Schema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    agreementAmount: {
-      type: String,
-      required: true,
-    },
     quotationAmount: {
       type: String,
       required: true,
