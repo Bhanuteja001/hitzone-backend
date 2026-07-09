@@ -10,8 +10,8 @@ export const ProjectSchema = z
     clientMobile: z
       .string()
       .regex(/^\+?[1-9]\d{9,14}$/, "Invalid mobile number"),
-    clientEmail: z.string().email("Invalid email address"),
-    quotationAmount: z.string().min(1, "Quotation amount is required"),
+    clientEmail: z.preprocess((val) => (val === "" || val === null || val === undefined ? undefined : val), z.string().email("Invalid email address").optional()),
+    quotationAmount: z.preprocess((val) => (val === "" || val === null || val === undefined ? undefined : val), z.string().optional()),
     location: z.string().min(1),
     area: z.string().min(1),
     budget: z.string().min(1),

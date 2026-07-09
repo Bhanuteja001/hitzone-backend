@@ -22,11 +22,11 @@ const Schema = new mongoose.Schema(
     },
     clientEmail: {
       type: String,
-      required: true,
+      required: false,
     },
     quotationAmount: {
       type: String,
-      required: true,
+      required: false,
     },
 
     location: {

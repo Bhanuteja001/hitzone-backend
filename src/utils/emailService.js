@@ -189,29 +189,73 @@ export const sendAgreementEmail = async (project) => {
     </div>
   `;
 
+  const formattedEndDate = project.endDate ? new Date(project.endDate).toLocaleDateString("en-IN") : "N/A";
+  const desc = project.projectDescription || "N/A";
+
+  const plainTextBody = `Dear ${project.clientName},
+
+Thank you for choosing HIT Zone. 
+
+Below is the complete details and terms of agreement for your project:
+
+==================================================
+AGREEMENT & QUOTATION DOCUMENT
+==================================================
+
+1. Project & Client Details
+---------------------------
+Project ID: ${project.projectRefId}
+Project Name: ${project.projectName}
+Client Name: ${project.clientName}
+Client Phone: ${project.clientMobile || ""}
+Client Email: ${project.clientEmail || ""}
+Location: ${project.location}
+Area (in sft): ${project.area || ""}
+Start Date: ${formattedStartDate}
+End Date: ${formattedEndDate}
+Description: ${desc}
+
+2. Quotation & Budget Details
+-----------------------------
+Quotation Amount: ₹${qAmt.toLocaleString("en-IN")}
+Project Budget/Cost: ₹${bAmt.toLocaleString("en-IN")}
+
+3. Terms & Conditions
+---------------------
+1. 50% Advance: Payable upon order confirmation.
+2. 30% Payment: Payable upon arrival of materials at site.
+3. 20% Balance: Payable upon completion of work.
+4. GST: 5% GST is included in the above quotation.
+5. 2-year service warranty is provided. Any issues not resulting from physical damage, misuse, or Unauthorized alterations will be covered under the warranty terms.
+6. Accommodation & Food: Food and accommodation for installers shall be provided by the management at site.
+7. Work Schedule: Work will commence after receipt of advance payment and site readiness confirmation.
+8. Completion Time: The completion timeline is subject to site conditions, weather, and uninterrupted workflow.
+9. Electricity & Water: Required electricity and water for installation shall be provided by the client at site free of cost.
+10. Material Handling: Safe storage space for materials must be provided by the client at site.
+11. Variation Clause: Any additional work or change in specifications will be charged extra upon mutual approval.
+12. Damage & Loss: The Company is not responsible for damages caused due to natural calamities, misuse, or third-party interference after handover.
+
+Client Signature: _______________________
+Authorised Signatory: _______________________
+
+Best regards,
+HIT Zone Management
+Admin: dineshmodem5132@gmail.com`;
+
   const mailOptions = {
     from: `"HIT Zone" <${emailUser}>`,
     to: project.clientEmail,
     subject: `Project Agreement & Quotation - ${project.projectName} (${project.projectRefId})`,
-    text: `Dear ${project.clientName},
-
-Thank you for choosing HIT Zone. 
-
-Please find attached the official Agreement & Quotation document for your project "${project.projectName}" (Ref ID: ${project.projectRefId}). 
-
-Quotation Amount: ₹${qAmt.toLocaleString("en-IN")}
-Project Cost: ₹${bAmt.toLocaleString("en-IN")}
-
-Please check the attachment for terms & conditions.
-
-Best regards,
-HIT Zone Management
-Admin: dineshmodem5132@gmail.com`,
+    text: plainTextBody,
     html: htmlBody,
     attachments: [
       {
         filename: `Agreement_${project.projectRefId}.pdf`,
         content: pdfBuffer,
+      },
+      {
+        filename: `Agreement_${project.projectRefId}.txt`,
+        content: plainTextBody,
       },
     ],
   };
